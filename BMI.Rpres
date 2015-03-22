@@ -1,0 +1,145 @@
+BMI App
+========================================================
+author: K
+date: 03/22/2015
+
+Body Mass Index (BMI) App
+========================================================
+**BMI App calculates Body Mass Index** 
+
+**BMI is an indicator for risk of Heart Attack and High Blood Pressure**
+
+Users provide the following information to get their BMI and their weight category
+
+- Gender
+- Age
+- Height
+- Weight
+
+Interpreting BMI App Results
+========================================================
+**BMI App shows the weight category of the user based on their BMI**
+
+**Higher the BMI, higher the risk for heart disease and diabetes**
+
+**BMI App is a simple tool to motivate a healthy lifestyle among users**
+
+Source: http://www.whathealth.com
+
+
+How BMI App Works
+========================================================
+```{r server.R code, echo=FALSE}
+### This is the server.R file for the shiny app to calculate BMI (Body Mass Index)
+### Coursera "Developing Data Products" Course project
+### WARNING: Don't use this app for any medical diagnosis. This app was a created for a course project 
+### and should NOT be used of any other purpose.
+### Reference:http://www.whathealth.com/bmi/formula.html#limitations
+
+library(shiny)
+
+## Calculating BMI (Reference: http://www.whathealth.com/bmi/formula.html#limitations)
+BMI_Calc <- function(gender, age, weight, heightft, heightin){
+    heightins <- heightft*12 + heightin
+    bmi <- round((weight*703)/(heightins^2),1)
+    return(bmi)
+}
+
+## Age Disclaimer (Reference: http://www.whathealth.com/bmi/formula.html#limitations)
+
+Age_Warn <- function(age){
+  if(age < 20) {
+    agewarning <- c("This BMI Calculator may not be valid for your age")
+  } else {
+    agewarning <- c("This BMI Calculator is reasonably valid for your age")
+  }
+  return(agewarning)
+}
+  
+## BMI Observation (Reference:http://www.whathealth.com/bmi/formula.html#limitations)
+  
+BMI_Diag <- function(bmi){
+  if(bmi < 18.5){
+    bmi_diag <- c("Underweight")
+  } else if(bmi >= 18.5 && bmi <= 24.9){
+    bmi_diag <- c("Normal") 
+  } else if(bmi >= 25.0 && bmi <= 29.9){
+    bmi_diag <- c("Overweight") 
+  }
+    else {
+    bmi_diag <- c("Obese")
+  }
+    return(bmi_diag)
+}
+  
+shinyServer(
+  function(input, output){
+    output$gender <- renderText({input$gender})
+    output$age <- renderText({input$age})
+    output$weight <- renderText({input$weight})
+    output$heightft <- renderText({input$heightft})
+    output$heightin <- renderText({input$heightin})
+    output$bmi <- renderText({BMI_Calc(input$gender,input$age,input$weight,input$heightft,input$heightin)})
+    output$agewarning <- renderText({Age_Warn(input$age)})
+    output$bmi_diag <- renderText({BMI_Diag(({BMI_Calc(input$gender,input$age,input$weight,input$heightft,input$heightin)}))})
+    }
+  )
+```
+
+```{r ui.R code, echo=FALSE}
+### This is the ui.R file for the shiny app to calculate BMI (Body Mass Index)
+### Coursera "Developing Data Products" Course project
+### WARNING: Don't use this app for any medical diagnosis. This app was a created for a course project 
+### and should NOT be used for any other purpose.
+### Reference:http://www.whathealth.com/bmi/formula.html#limitations
+
+library(shiny)
+shinyUI(fluidPage(
+  titlePanel("Know Your BMI App"),
+  h5('BMI stands for "Body Mass Index.BMI is a measure of body fat based on height and weight. The higher your BMI, the higher your risk for heart disease and high blood pressure.'),
+  h5('WARNING:This App was created for the Coursera "Developing Data Products" Course project. DO NOT USE THIS APP FOR MEDICAL DIAGNOSIS.'),
+  h5('Reference: Whathealth Website - http://www.whathealth.com/bmi/formula.html#limitations'),
+ 
+  sidebarLayout(
+  sidebarPanel(
+    h3('Enter Your Information'),
+    radioButtons(inputId='gender',label='Gender:',choices=c('Male', 'Female')),
+    sliderInput('age', 'Age:', 0,120, 30, step=1),
+    numericInput('weight', 'Weight(lbs):',160, min = 100,max =1000,step=1),
+    h4('Height:'),
+    numericInput('heightft','Feet', 6, min = 1, max =10, step=1),
+    numericInput('heightin', 'Inches', 2, min=1, max =12, step=1 ),
+    submitButton('Calculate My BMI')
+     ),
+   
+  mainPanel(
+     h3('Your Selections'),
+     h4('Gender:'),
+     verbatimTextOutput("gender"),
+     h4('Age:'),
+     verbatimTextOutput("age"),
+     h4('Weight(lbs):'),
+     verbatimTextOutput("weight"),
+     h4('Height:'),
+     h5('Feet'),
+     verbatimTextOutput("heightft"),
+     h5('Inches'),
+     verbatimTextOutput("heightin"),
+     
+     h3('Your Results'),
+     h4('Body Mass Index (BMI):'),
+     verbatimTextOutput("bmi"),
+     h4('BMI Weight Category:'),
+     verbatimTextOutput("bmi_diag"),
+     h4('Age Disclaimer:'),
+     verbatimTextOutput("agewarning")
+     ),
+  
+  )))
+```
+
+```{r runApp, echo=FALSE}
+runApp()
+```
+
+
